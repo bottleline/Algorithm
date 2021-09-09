@@ -1,0 +1,76 @@
+1. 시간 HH:MM:SS 형식을 초단위의 Int 형으로 변환해서 저장
+
+2. 시간 틱 배열 생성 (0 초 ~ 마지막 재생시간 초)
+
+3. Int 형의 [start, end] 로 변환한 logs 배열 for 문 돌며 timeLine[log[       ]] 에 start 지점은 +1 end 지점은 -1
+
+4. 누적 재생량을 구하기위해 for문 돌며 timeLine[i] += timeLine[i - 1]
+
+5. 투포인터 알고리즘으로 재생량의 합 최대값 지점 찾기
+
+​
+
+비슷한 문제로 추석 트래핑량 문제가 있었던것 같다..
+
+처음에는 완전탐색으로 풀다가 시간초과해서 투포인터로 갈아탔더니 통과 ㅜㅜ
+
+​
+
+import Foundation
+func solution(_ play_time:String, _ adv_time:String, _ logs:[String]) -> String {
+    let advTime = changeTimeToSecond(adv_time)
+    let playTime = changeTimeToSecond(play_time)
+    
+    var timeLine = Array(repeating : 0 , count : playTime + 1)
+
+    var newLogs:[[Int]] = []
+     
+    for log in logs{
+        var separated = log.components(separatedBy:"-")
+        newLogs.append([changeTimeToSecond(separated[0]),changeTimeToSecond(separated[1])])
+    }
+    
+    for newLog in newLogs{
+        timeLine[newLog[0]] += 1
+        timeLine[newLog[1]] -= 1
+    }
+    
+    for i in 0...playTime{
+        if i != 0 {
+            timeLine[i] += timeLine[i - 1]
+        }
+    }    // 재생중인 사람수 구하기위해
+    
+    var max = 0
+    var end = 0
+    var sum = 0
+    var maxTime = 0
+    
+    for start in 0 ... playTime {
+        while end <= playTime && end - start < advTime {
+            
+            sum += timeLine[end]
+            if sum > max {
+                max = sum
+                maxTime = start
+            }
+            end += 1
+            
+        }
+        sum -= timeLine[start]
+        
+    }
+    let H = String(format:"%02d",maxTime / 3600)
+    let M = String(format:"%02d",(maxTime - Int(H)! * 3600) / 60)
+    let S = String(format:"%02d",maxTime % 60)
+
+    return H + ":" + M + ":" + S
+}
+func changeTimeToSecond(_ time:String) -> Int{
+    let separated = time.components(separatedBy:":")
+    let H = Int(separated[0])! * 3600
+    let M = Int(separated[1])! * 60
+    let S = Int(separated[2])!
+    
+    return H + M + S
+}
